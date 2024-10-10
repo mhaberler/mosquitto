@@ -32,6 +32,12 @@ Contributors:
  *
  * Note that this only works on Mosquitto 2.0 or later.
  */
+
+// 1728599763: -----------  callback_message: topic=sensor-logger
+// payload={"messageId":31,"sessionId":"b9af01e8-513f-42c7-9fb6-3c81fc23caf6",
+//          "deviceId":"99dac4cb-d27e-4319-9e0e-5f9067ead1d7",
+//          "payload":[{"name":"bluetooth","time":1728599762906000000,"values":{"id":"77d0b863-bdb9-e712-bb3b-c5b15959be20","rssi":-56,"manufacturerData":"99040510a855fdffff001c00d803c0be562c934cc26ed1702b44"}},{"name":"bluetooth","time":1728599763214000000,"values":{"id":"7d90872a-d4d8-566a-c8da-dd703caf2682","rssi":-59}}]}
+
 #include <stdio.h>
 #include <string.h>
 
@@ -41,22 +47,76 @@ Contributors:
 #include "mqtt_protocol.h"
 #include "theengs.h"
 
+#define ARDUINOJSON_USE_LONG_LONG 1
+#include "ArduinoJson.h"
+
+#define JSON_DOC_SIZE 4096
+
 #define UNUSED(A) (void)(A)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int mosquitto_plugin_version(int supported_version_count, const int *supported_versions);
+int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **user_data, struct mosquitto_opt *opts, int opt_count);
+int mosquitto_plugin_cleanup(void *user_data, struct mosquitto_opt *opts, int opt_count);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 static mosquitto_plugin_id_t *mosq_pid = NULL;
 
 static void *theengs_decoder;
+static const char *theengs_topic = "sensor-logger";
 
 static int callback_message(int event, void *event_data, void *userdata)
 {
-    struct mosquitto_evt_message *ed = event_data;
-    char *new_payload;
-    uint32_t new_payloadlen;
+    struct mosquitto_evt_message *ed =  static_cast<struct mosquitto_evt_message*>(event_data);
 
     UNUSED(event);
     UNUSED(userdata);
 
-    mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  callback_message");
+    // mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  callback_message: topic=%s payload=%.*s", ed->topic, ed->payloadlen, ed->payload);
+
+    if ((ed->topic == NULL) || strcmp(ed->topic, theengs_topic)) { // no match, leave untouched
+        return MOSQ_ERR_SUCCESS;
+    }
+    StaticJsonDocument<JSON_DOC_SIZE> doc;
+
+    // parse payload as JSON
+    DeserializationError err = deserializeJson(doc, ed->payload, ed->payloadlen);
+    switch (err.code()) {
+    case DeserializationError::Ok:
+        // mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  parsed OK");
+        break;
+    default:
+        mosquitto_log_printf( MOSQ_LOG_NOTICE, "Deserialization error: %s", err.c_str());
+        return MOSQ_ERR_SUCCESS;
+        break;
+    }
+
+    JsonArray jpl = doc["payload"].as<JsonArray>(); // ["values"]["manufacturerData"];
+
+    for (JsonVariant item : jpl) {
+        JsonVariant value = item["values"]["manufacturerData"];
+        if (value)
+            mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  JsonVariant: %s", value.as<const char*>());
+    }
+
+    // mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  MFD: %s", mfd);
+
+    // iterate payload as p
+    //      if p.haskey(manufacturerData) : p[theengs] = decodeResult(mfd)
+    // sertialize
+    // pass back
+
+    // flatten option?
+
+    return MOSQ_ERR_SUCCESS;
+#if 0
+    char *new_payload;
+    uint32_t new_payloadlen;
 
     /* This simply adds "hello " to the front of every payload. You can of
      * course do much more complicated message processing if needed. */
@@ -83,6 +143,7 @@ static int callback_message(int event, void *event_data, void *userdata)
     ed->payloadlen = new_payloadlen;
 
     return MOSQ_ERR_SUCCESS;
+#endif
 }
 
 int mosquitto_plugin_version(int supported_version_count, const int *supported_versions)

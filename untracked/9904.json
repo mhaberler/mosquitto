@@ -1,0 +1,24 @@
+{
+    "messageId": 31,
+    "sessionId": "b9af01e8-513f-42c7-9fb6-3c81fc23caf6",
+    "deviceId": "99dac4cb-d27e-4319-9e0e-5f9067ead1d7",
+    "payload": [
+        {
+            "name": "bluetooth",
+            "time": 1728599762906000000,
+            "values": {
+                "id": "77d0b863-bdb9-e712-bb3b-c5b15959be20",
+                "rssi": -56,
+                "manufacturerData": "99040510a855fdffff001c00d803c0be562c934cc26ed1702b44"
+            }
+        },
+        {
+            "name": "bluetooth",
+            "time": 1728599763214000000,
+            "values": {
+                "id": "7d90872a-d4d8-566a-c8da-dd703caf2682",
+                "rssi": -59
+            }
+        }
+    ]
+}
