@@ -2,7 +2,7 @@ include ../../config.mk
 
 .PHONY : all binary check clean reallyclean test install uninstall
 
-PLUGIN_NAME=mosquitto_payload_modification
+PLUGIN_NAME=mosquitto_theengs_decoder
 
 all : binary
 
