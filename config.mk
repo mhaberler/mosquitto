@@ -61,13 +61,13 @@ WITH_SYS_TREE:=yes
 # initialization. See README in service/systemd/ for more information.
 # Setting to yes means the libsystemd-dev or similar package will need to be
 # installed.
-WITH_SYSTEMD:=no
+WITH_SYSTEMD:=yes
 
 # Build with SRV lookup support.
 WITH_SRV:=no
 
 # Build with websockets support on the broker.
-WITH_WEBSOCKETS:=no
+WITH_WEBSOCKETS:=yes
 
 # Use elliptic keys in broker
 WITH_EC:=yes
