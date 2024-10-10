@@ -3,7 +3,8 @@ DIRS= \
 		deny-protocol-version \
 		dynamic-security \
 		message-timestamp \
-		payload-modification
+		payload-modification \
+		theengs-decoder
 
 .PHONY : all binary check clean reallyclean test install uninstall
 
