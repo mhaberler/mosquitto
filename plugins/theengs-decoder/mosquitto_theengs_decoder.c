@@ -39,84 +39,93 @@ Contributors:
 #include "mosquitto_plugin.h"
 #include "mosquitto.h"
 #include "mqtt_protocol.h"
+#include "theengs.h"
 
 #define UNUSED(A) (void)(A)
 
 static mosquitto_plugin_id_t *mosq_pid = NULL;
 
+static void *theengs_decoder;
+
 static int callback_message(int event, void *event_data, void *userdata)
 {
-	struct mosquitto_evt_message *ed = event_data;
-	char *new_payload;
-	uint32_t new_payloadlen;
+    struct mosquitto_evt_message *ed = event_data;
+    char *new_payload;
+    uint32_t new_payloadlen;
 
-	UNUSED(event);
-	UNUSED(userdata);
+    UNUSED(event);
+    UNUSED(userdata);
 
-	mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  callback_message");
+    mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  callback_message");
 
-	/* This simply adds "hello " to the front of every payload. You can of
-	 * course do much more complicated message processing if needed. */
+    /* This simply adds "hello " to the front of every payload. You can of
+     * course do much more complicated message processing if needed. */
 
-	/* Calculate the length of our new payload */
-	new_payloadlen = ed->payloadlen + (uint32_t)strlen("hello ")+1;
+    /* Calculate the length of our new payload */
+    new_payloadlen = ed->payloadlen + (uint32_t)strlen("hello ")+1;
 
-	/* Allocate some memory - use
-	 * mosquitto_calloc/mosquitto_malloc/mosquitto_strdup when allocating, to
-	 * allow the broker to track memory usage */
-	new_payload = mosquitto_calloc(1, new_payloadlen);
-	if(new_payload == NULL){
-		return MOSQ_ERR_NOMEM;
-	}
+    /* Allocate some memory - use
+     * mosquitto_calloc/mosquitto_malloc/mosquitto_strdup when allocating, to
+     * allow the broker to track memory usage */
+    new_payload = mosquitto_calloc(1, new_payloadlen);
+    if(new_payload == NULL) {
+        return MOSQ_ERR_NOMEM;
+    }
 
-	/* Print "hello " to the payload */
-	snprintf(new_payload, new_payloadlen, "hello ");
-	memcpy(new_payload+(uint32_t)strlen("hello "), ed->payload, ed->payloadlen);
+    /* Print "hello " to the payload */
+    snprintf(new_payload, new_payloadlen, "hello ");
+    memcpy(new_payload+(uint32_t)strlen("hello "), ed->payload, ed->payloadlen);
 
-	/* Assign the new payload and payloadlen to the event data structure. You
-	 * must *not* free the original payload, it will be handled by the
-	 * broker. */
-	ed->payload = new_payload;
-	ed->payloadlen = new_payloadlen;
+    /* Assign the new payload and payloadlen to the event data structure. You
+     * must *not* free the original payload, it will be handled by the
+     * broker. */
+    ed->payload = new_payload;
+    ed->payloadlen = new_payloadlen;
 
-	return MOSQ_ERR_SUCCESS;
+    return MOSQ_ERR_SUCCESS;
 }
 
 int mosquitto_plugin_version(int supported_version_count, const int *supported_versions)
 {
-	int i;
+    int i;
 
-	for(i=0; i<supported_version_count; i++){
-		if(supported_versions[i] == 5){
-			return 5;
-		}
-	}
-	return -1;
+    for(i=0; i<supported_version_count; i++) {
+        if(supported_versions[i] == 5) {
+            return 5;
+        }
+    }
+    return -1;
 }
 
 int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **user_data, struct mosquitto_opt *opts, int opt_count)
 {
-	UNUSED(user_data);
-	UNUSED(opts);
-	UNUSED(opt_count);
+    UNUSED(user_data);
+    UNUSED(opts);
+    UNUSED(opt_count);
 
-	mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_init");
+    theengs_decoder = Theengs_NewDecoder();
+
+    mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_init decoder=%p", theengs_decoder);
 
     for(int i = 0; i < opt_count; i++) {
-		mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  option '%d': '%s' = '%s'", i, opts[i].key, opts[i].value);
+        mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  option '%d': '%s' = '%s'", i, opts[i].key, opts[i].value);
     }
 
-	mosq_pid = identifier;
-	return mosquitto_callback_register(mosq_pid, MOSQ_EVT_MESSAGE, callback_message, NULL, NULL);
+    mosq_pid = identifier;
+    return mosquitto_callback_register(mosq_pid, MOSQ_EVT_MESSAGE, callback_message, NULL, NULL);
 }
 
 int mosquitto_plugin_cleanup(void *user_data, struct mosquitto_opt *opts, int opt_count)
 {
-	UNUSED(user_data);
-	UNUSED(opts);
-	UNUSED(opt_count);
+    UNUSED(user_data);
+    UNUSED(opts);
+    UNUSED(opt_count);
 
-	mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_cleanup");
+    if (theengs_decoder) {
+        Theengs_DestroyDecoder(theengs_decoder);
+    }
+    mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_cleanup");
 
-	return mosquitto_callback_unregister(mosq_pid, MOSQ_EVT_MESSAGE, callback_message, NULL);
+    return mosquitto_callback_unregister(mosq_pid, MOSQ_EVT_MESSAGE, callback_message, NULL);
 }
+
