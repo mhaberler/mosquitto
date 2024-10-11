@@ -1,0 +1,65 @@
+{
+    "messageId": 148,
+    "sessionId": "a8941af3-ca23-4376-b399-75638a7e2505",
+    "deviceId": "8cc7a1ba-2a22-4130-8c77-494922d3804e",
+    "payload": [
+        {
+            "name": "bluetooth",
+            "time": 1728647005835000000,
+            "values": {
+                "rssi": -44,
+                "id": "C2:6E:D1:70:2B:44",
+                "manufacturerData": "99040511e4502dffff0014fff403e4bf3648db1ac26ed1702b44",
+                "txPowerLevel": null,
+                "advertisement": "0201061bff99040511e4502dffff0014fff403e4bf3648db1ac26ed1702b4411079ecadc240ee5a9e093f3a3b50100406e0b0952757576692032423434",
+                "theengs": {
+                    "rssi": -44,
+                    "brand": "Ruuvi",
+                    "model": "RuuviTag",
+                    "model_id": "RuuviTag_RAWv2",
+                    "tempc": 22.9,
+                    "tempf": 73.22,
+                    "hum": 51.3125,
+                    "pres": 1155.35,
+                    "accx": 0.0196133,
+                    "accy": -0.01176798,
+                    "accz": 0.97674234,
+                    "volt": 3.129,
+                    "tx": 4,
+                    "mov": 72,
+                    "seq": 56090,
+                    "mac": "C2:6E:D1:70:2B:44"
+                }
+            }
+        },
+        {
+            "name": "bluetooth",
+            "time": 1728647005924000000,
+            "values": {
+                "rssi": -67,
+                "id": "5E:BE:C9:DD:ED:55",
+                "manufacturerData": null,
+                "txPowerLevel": null,
+                "advertisement": "0303f3fe1e16f3fe4a17234738374b113273b46de589bb387aef152db5d220e6e1c9c4"
+            }
+        },
+        {
+            "name": "bluetooth",
+            "time": 1728647006661000000,
+            "values": {
+                "rssi": -63,
+                "id": "46:A9:B2:25:99:93",
+                "manufacturerData": "4c0009081345c0a8008c1b58160800023d97be3ba55f",
+                "txPowerLevel": null,
+                "advertisement": "02011a17ff4c0009081345c0a8008c1b58160800023d97be3ba55f",
+                "theengs": {
+                    "rssi": -63,
+                    "brand": "Apple",
+                    "model": "Apple Continuity",
+                    "model_id": "APPLE_CONT",
+                    "device": "Apple device"
+                }
+            }
+        }
+    ]
+}

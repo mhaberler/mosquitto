@@ -1,0 +1,71 @@
+{
+    "messageId": 91,
+    "sessionId": "0591d819-9e2a-40b9-95a3-8bb3400c59c2",
+    "deviceId": "99dac4cb-d27e-4319-9e0e-5f9067ead1d7",
+    "payload": [
+        {
+            "name": "bluetooth",
+            "time": 1728647176420000000,
+            "values": {
+                "id": "509e3926-ea5b-f959-8d34-4c3d34918ebd",
+                "rssi": -69
+            }
+        },
+        {
+            "name": "bluetoothmetadata",
+            "time": 1728647176437000000,
+            "values": {
+                "id": "c341a55c-66ff-5bde-cd27-c4af02b09dca",
+                "name": "Ruuvi 5668",
+                "isConnectable": 1,
+                "serviceUUIDs": "180a|6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+                "manufacturer": "Ruuvi Innovations Ltd",
+                "model": "RuuviTag B"
+            }
+        },
+        {
+            "name": "bluetooth",
+            "time": 1728647176437000000,
+            "values": {
+                "id": "c341a55c-66ff-5bde-cd27-c4af02b09dca",
+                "rssi": -60,
+                "manufacturerData": "99040511414efdbc49004c00240400ad966b40ccd4155c775668",
+                "theengs": {
+                    "rssi": -60,
+                    "brand": "Ruuvi",
+                    "model": "RuuviTag",
+                    "model_id": "RuuviTag_RAWv2",
+                    "tempc": 22.085,
+                    "tempf": 71.753,
+                    "hum": 50.5525,
+                    "pres": 982.01,
+                    "accx": 0.07453054,
+                    "accy": 0.03530394,
+                    "accz": 1.00420096,
+                    "volt": 2.988,
+                    "tx": 4,
+                    "mov": 107,
+                    "seq": 16588,
+                    "mac": "D4:15:5C:77:56:68"
+                }
+            }
+        },
+        {
+            "name": "bluetooth",
+            "time": 1728647176452000000,
+            "values": {
+                "id": "20ed786e-8ba8-ed33-3365-bb9561beab2d",
+                "rssi": -54
+            }
+        },
+        {
+            "name": "bluetoothmetadata",
+            "time": 1728647176661000000,
+            "values": {
+                "id": "5ca5b21e-a888-73b8-ab38-7a4db91914cd",
+                "name": "Unknown Name",
+                "isConnectable": 0
+            }
+        }
+    ]
+}
