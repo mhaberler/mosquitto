@@ -46,17 +46,19 @@ Contributors:
 #include "mosquitto.h"
 #include "mqtt_protocol.h"
 #include "theengs.h"
+#include "decoder.h"
 
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include "ArduinoJson.h"
 
-#define JSON_DOC_SIZE 4096
+#define JSON_DOC_SIZE 65536
 
 #define UNUSED(A) (void)(A)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 int mosquitto_plugin_version(int supported_version_count, const int *supported_versions);
 int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **user_data, struct mosquitto_opt *opts, int opt_count);
 int mosquitto_plugin_cleanup(void *user_data, struct mosquitto_opt *opts, int opt_count);
@@ -67,8 +69,11 @@ int mosquitto_plugin_cleanup(void *user_data, struct mosquitto_opt *opts, int op
 
 static mosquitto_plugin_id_t *mosq_pid = NULL;
 
-static void *theengs_decoder;
+static TheengsDecoder decoder;
+
 static const char *theengs_topic = "sensor-logger";
+
+StaticJsonDocument<1024> decoderInput;
 
 static int callback_message(int event, void *event_data, void *userdata)
 {
@@ -95,15 +100,55 @@ static int callback_message(int event, void *event_data, void *userdata)
         return MOSQ_ERR_SUCCESS;
         break;
     }
-
     JsonArray jpl = doc["payload"].as<JsonArray>(); // ["values"]["manufacturerData"];
+    JsonObject BLEdata = decoderInput.to<JsonObject>();
 
     for (JsonVariant item : jpl) {
-        JsonVariant value = item["values"]["manufacturerData"];
-        if (value)
-            mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  JsonVariant: %s", value.as<const char*>());
-    }
+        JsonObject value = item["values"];
+        JsonVariant mfd = value["manufacturerData"];
+        if (!mfd)
+            continue;
 
+        BLEdata.clear();
+        BLEdata["manufacturerdata"] = mfd;
+        if (value["rssi"]) {
+            BLEdata["rssi"] = value["rssi"];
+        }
+        if (value["txPowerLevel"]) {
+            BLEdata["txpower"] = value["txPowerLevel"];
+        }
+        if (decoder.decodeBLEJson(BLEdata)) {
+            BLEdata.remove("manufacturerdata");
+            BLEdata.remove("servicedata");
+            BLEdata.remove("servicedatauuid");
+            BLEdata.remove("type");
+            BLEdata.remove("cidc");
+            BLEdata.remove("acts");
+            BLEdata.remove("cont");
+            BLEdata.remove("track");
+
+            StaticJsonDocument<1024> result;
+            for (JsonPair kv : BLEdata) {
+                result[kv.key()] = kv.value();
+            }
+            value["theengs"] = result;
+
+            std::string buf;
+            serializeJson(value, buf);
+            mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  decodeBLEJson(value): %s", buf.c_str());
+        }
+    }
+    size_t new_payloadlen = measureJson(doc);
+    void *new_payload = mosquitto_calloc(1, new_payloadlen);
+
+    if(new_payload == NULL) {
+        return MOSQ_ERR_NOMEM;
+    }
+    serializeJson(doc, new_payload, new_payloadlen);
+    ed->payload = new_payload;
+    ed->payloadlen = (uint32_t) new_payloadlen;
+
+    return MOSQ_ERR_SUCCESS;
     // mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  MFD: %s", mfd);
 
     // iterate payload as p
@@ -164,9 +209,9 @@ int mosquitto_plugin_init(mosquitto_plugin_id_t *identifier, void **user_data, s
     UNUSED(opts);
     UNUSED(opt_count);
 
-    theengs_decoder = Theengs_NewDecoder();
+    // theengs_decoder = Theengs_NewDecoder();
 
-    mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_init decoder=%p", theengs_decoder);
+    mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_init");
 
     for(int i = 0; i < opt_count; i++) {
         mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  option '%d': '%s' = '%s'", i, opts[i].key, opts[i].value);
@@ -182,9 +227,9 @@ int mosquitto_plugin_cleanup(void *user_data, struct mosquitto_opt *opts, int op
     UNUSED(opts);
     UNUSED(opt_count);
 
-    if (theengs_decoder) {
-        Theengs_DestroyDecoder(theengs_decoder);
-    }
+    // if (theengs_decoder) {
+    //     Theengs_DestroyDecoder(theengs_decoder);
+    // }
     mosquitto_log_printf( MOSQ_LOG_NOTICE, "-----------  mosquitto_plugin_cleanup");
 
     return mosquitto_callback_unregister(mosq_pid, MOSQ_EVT_MESSAGE, callback_message, NULL);

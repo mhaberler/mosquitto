@@ -4,7 +4,7 @@ include ../../config.mk
 
 PLUGIN_NAME=mosquitto_theengs_decoder
 
-PLUGIN_INCLUDES=-I/home/mah/src/decoder/include/shared	-I/home/mah/src/decoder/src/arduino_json/src
+PLUGIN_INCLUDES=-I/home/mah/src/decoder/include/shared	-I/home/mah/src/decoder/src/arduino_json/src -I/home/mah/src/decoder/src
 PLUGIN_LIBS=/home/mah/src/decoder/build/libdecoder.a
  
 all : binary
